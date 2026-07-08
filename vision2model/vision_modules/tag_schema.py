@@ -13,6 +13,8 @@ TAG_SCHEMA = {
 
 REQUIRED_TAGS = ['function', 'size', 'accuracy']
 
+VALID_SIZES = {'S', 'M', 'L', 'S|M', 'M|L', 'all'}
+
 
 def validate_tags(tags: dict) -> list[str]:
     """验证标签是否满足 schema 要求
@@ -39,5 +41,7 @@ def validate_tags(tags: dict) -> list[str]:
         errors.append(f"accuracy 应为 1-5, 实际为 {tags['accuracy']}")
     if 'robustness' in tags and not (1 <= tags['robustness'] <= 5):
         errors.append(f"robustness 应为 1-5, 实际为 {tags['robustness']}")
+    if 'size' in tags and tags['size'] not in VALID_SIZES:
+        errors.append(f"size 应为 {VALID_SIZES}, 实际为 {tags['size']}")
     
     return errors

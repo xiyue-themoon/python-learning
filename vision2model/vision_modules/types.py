@@ -36,25 +36,28 @@ class PipelineSelection:
 # 2. 通用区域
 # ══════════════════════════════════════════════
 
-@dataclass
+@dataclass(eq=False)
 class GenericRegion:
-    """数学分割后的通用区域"""
+    """数学分割后的通用区域。基于 id 的身份比较和哈希，不看字段值。"""
     id: int
-    mask: np.ndarray = field(compare=False, repr=False, hash=False)  # 布尔矩阵
+    mask: np.ndarray = field(repr=False, hash=False)  # 布尔矩阵
     bbox: tuple                 # (x, y, w, h)
     centroid: tuple             # (cx, cy)
     area: int                   # 像素数
     area_ratio: float           # 占图像总面积比
-    roles: set = field(compare=False, hash=False)   # {'dominant', 'uniform', ...}
-    properties: dict = field(compare=False, hash=False)  # 扩展统计量
-    contour: np.ndarray = field(compare=False, repr=False, hash=False)  # N×2 边界点集
+    roles: set = field(hash=False)   # {'dominant', 'uniform', ...}
+    properties: dict = field(hash=False)  # 扩展统计量
+    contour: np.ndarray = field(repr=False, hash=False)  # N×2 边界点集
     convexity: float            # 凸包面积 / 实际面积
     aspect_ratio: float         # 宽高比
-    color_mean: np.ndarray = field(compare=False, repr=False, hash=False)  # HSV 均值
-    color_std: np.ndarray = field(compare=False, repr=False, hash=False)   # HSV 标准差
+    color_mean: np.ndarray = field(repr=False, hash=False)  # HSV 均值
+    color_std: np.ndarray = field(repr=False, hash=False)   # HSV 标准差
 
     def __hash__(self):
         return hash(self.id)
+
+    def __eq__(self, other):
+        return isinstance(other, GenericRegion) and self.id == other.id
 
 
 # ══════════════════════════════════════════════
@@ -118,4 +121,4 @@ class CalibrationInput:
     method: str                 # 'grid' | 'body_height' | 'reference_object' | 'none'
     value_mm: float             # 真实尺寸 (mm)
     description: str = ''       # 描述
-    object_bbox: Optional[tuple] = None  # 参照物图像框 (x1,y1,x2,y2)
+    object_bbox: Optional[tuple] = None  # 参照物图像框 (x1, y1, x2, y2) 浮点像素坐标, y向下

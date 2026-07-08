@@ -38,6 +38,10 @@ def find_modules(**filters):
                 # size='all' 匹配任何尺寸
                 if tag_val == 'all':
                     continue
+                # 未标注 size 的模块不匹配任何查询
+                if tag_val is None:
+                    match = False
+                    break
                 # size 支持 'S|M' 格式
                 if isinstance(v, str) and v not in str(tag_val).split('|'):
                     match = False
