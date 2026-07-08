@@ -35,6 +35,9 @@ def find_modules(**filters):
         for k, v in filters.items():
             tag_val = tags.get(k)
             if k == 'size':
+                # size='all' 匹配任何尺寸
+                if tag_val == 'all':
+                    continue
                 # size 支持 'S|M' 格式
                 if isinstance(v, str) and v not in str(tag_val).split('|'):
                     match = False

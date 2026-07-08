@@ -1,7 +1,7 @@
 """Vision→3D 测量管线 — 核心数据结构"""
 
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import Optional, Union, Tuple
 import numpy as np
 
 
@@ -40,18 +40,21 @@ class PipelineSelection:
 class GenericRegion:
     """数学分割后的通用区域"""
     id: int
-    mask: np.ndarray            # 布尔矩阵
+    mask: np.ndarray = field(compare=False, repr=False, hash=False)  # 布尔矩阵
     bbox: tuple                 # (x, y, w, h)
     centroid: tuple             # (cx, cy)
     area: int                   # 像素数
     area_ratio: float           # 占图像总面积比
-    roles: set                  # {'dominant', 'uniform', ...}
-    properties: dict            # 扩展统计量
-    contour: np.ndarray         # N×2 边界点集
+    roles: set = field(compare=False, hash=False)   # {'dominant', 'uniform', ...}
+    properties: dict = field(compare=False, hash=False)  # 扩展统计量
+    contour: np.ndarray = field(compare=False, repr=False, hash=False)  # N×2 边界点集
     convexity: float            # 凸包面积 / 实际面积
     aspect_ratio: float         # 宽高比
-    color_mean: np.ndarray      # HSV 均值
-    color_std: np.ndarray       # HSV 标准差
+    color_mean: np.ndarray = field(compare=False, repr=False, hash=False)  # HSV 均值
+    color_std: np.ndarray = field(compare=False, repr=False, hash=False)   # HSV 标准差
+
+    def __hash__(self):
+        return hash(self.id)
 
 
 # ══════════════════════════════════════════════
@@ -61,7 +64,7 @@ class GenericRegion:
 @dataclass
 class Measurement:
     """单次测量的结果"""
-    value: float | tuple        # 测量值 (单值或坐标对)
+    value: Union[float, Tuple[float, float], Tuple[float, float, float]]  # 单值 / (x,y) / (x,y,z)
     error: float                # 标准误差
     unit: str                   # 'px' | 'mm'
     confidence: float           # 0.0 ~ 1.0
