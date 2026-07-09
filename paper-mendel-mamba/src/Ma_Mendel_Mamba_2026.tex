@@ -1,0 +1,441 @@
+% !TEX program = xelatex
+\documentclass[12pt,a4paper]{article}
+
+% ---- Packages ----
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{geometry}
+\geometry{margin=1in, top=1.2in, bottom=1.2in}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true, citecolor=blue, linkcolor=blue, urlcolor=blue}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{caption}
+\usepackage{setspace}
+\usepackage{enumitem}
+\usepackage{datetime2}
+\usepackage{parskip}
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{float}
+\usepackage{xcolor}
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small \textit{Ma}}
+\fancyhead[R]{\small Mendel to Mamba}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% ---- Commands ----
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\bA}{\mathbf{A}}
+\newcommand{\bB}{\mathbf{B}}
+\newcommand{\bC}{\mathbf{C}}
+\newcommand{\bD}{\mathbf{D}}
+\newcommand{\bW}{\mathbf{W}}
+\newcommand{\bI}{\mathbf{I}}
+\newcommand{\D}{\Delta}
+\newcommand{\softplus}{\operatorname{softplus}}
+\renewcommand{\vec}[1]{\mathbf{#1}}
+
+% ---- Bibliography ----
+\usepackage[backend=biber, style=ieee, sorting=none]{biblatex}
+\addbibresource{src/references.bib}
+
+\begin{document}
+
+% ============================================
+% TITLE
+% ============================================
+\begin{center}
+{\LARGE \textbf{From Mendel's ``Factor'' to Mamba's ``State'':}} \\[4pt]
+{\LARGE \textbf{The Inspiration of Genetic Thinking for Modern}} \\[4pt]
+{\LARGE \textbf{Brain-Inspired Computing Architectures}} \\[12pt]
+
+{\large Zhenxuan Ma} \\[4pt]
+\small Undergraduate Student in Bioinformatics, Jilin Agricultural University \\[4pt]
+June 2026
+\end{center}
+
+% ============================================
+% ABSTRACT
+% ============================================
+\begin{abstract}
+This paper proposes a conceptual bridge between classical and molecular genetics---from Mendel's discrete ``factors'' (1866) through McClintock's transposable elements (1950) and Jacob and Monod's operon model (1961)---and the trajectory of modern brain-inspired computing architectures. I argue that the intellectual evolution of genetics recapitulates, in striking ways, the progression from binarized neural computations to continuous state-space models (SSMs) and, most recently, to selective state-space architectures such as Mamba. The paper develops three core theses. First, Mendel's particulate inheritance and its 3:1 segregation ratio offer a surprisingly precise parallel to threshold-based computation in spiking neural networks (SNNs). Second, the mid-twentieth-century shift from discrete Mendelian factors to continuous, context-dependent epigenetic regulation mirrors the recent transition from discrete SNN dynamics to the continuous state evolution of structured state-space sequence models (S4). Third, Mamba's selective SSM---in which the state-transition parameters $\D$, $\bB$, and $\bC$ become input-dependent functions---finds a natural analogue in epigenetic mechanisms such as DNA methylation and histone modification, which allow a fixed genome to produce context-aware, dynamic gene expression. I substantiate these analogies with concrete mathematical formulations---including the discretized SSM dynamics, the LIF neuron model, the selective mechanism equations, and a formal complexity comparison ($O(n)$ vs.\ $O(n^2)$)---and I do not shy away from the limitations of the comparison. The paper concludes with a discussion of open questions and directions for future cross-disciplinary inquiry.
+\end{abstract}
+
+\noindent\textbf{Keywords:} Mendelian genetics; state-space models; Mamba; spiking neural networks; epigenetics; brain-inspired computing; selective state space; S4
+
+% ============================================
+% 1. INTRODUCTION
+% ============================================
+\section{Introduction}
+\label{sec:intro}
+
+The history of genetics is, in a meaningful sense, a history of information processing. When Gregor Mendel presented his experiments on \emph{Pisum sativum} to the Brno Natural History Society in 1866, he proposed the existence of discrete, heritable ``factors''---abstract units that could be transmitted from parent to offspring in predictable numerical ratios~\cite{mendel1866}. He had no knowledge of DNA, no microscope powerful enough to see chromosomes, and certainly no inkling that his work would one day be read alongside papers on neural computation. Yet the conceptual structure he built---discrete units obeying combinatorial rules---foreshadows, with remarkable fidelity, the logic of threshold-based computation in modern neural networks.
+
+This paper is an attempt to trace that connection and to push it further. The central claim is not merely metaphorical; I argue that the conceptual trajectory of genetics---from discrete, deterministic factors through continuous, context-dependent regulation---maps onto an analogous trajectory in brain-inspired computing with enough precision to generate testable hypotheses. The journey from Mendel's factors to Barbara McClintock's transposable elements~\cite{mcclintock1950}, from the Jacob-Monod operon model~\cite{jacob1961} to today's understanding of epigenetics, parallels the computing community's path from McCulloch-Pitts binary neurons~\cite{mcculloch1943} through spiking neural networks (SNNs) to continuous state-space models (SSMs) and, most recently, to selective architectures such as Mamba~\cite{gu2023mamba}.
+
+Let me be clear about what this paper is \emph{not}. It is not an attempt to claim that evolution ``designed'' the brain to implement SSMs, nor that Mamba's selective mechanism somehow ``discovers'' epigenetic regulation. The analogy has sharp limits---I will point them out as we proceed. Rather, the paper's contribution is to show that two fields, separated by subject matter and methodology, have converged on a common set of conceptual problems: how to balance stability and plasticity, how to represent discrete units within continuous dynamics, and how to make a fixed set of resources responsive to context. By examining these problems through a comparative lens, we may gain insight into both fields.
+
+The organization of the paper is as follows. Section~\ref{sec:mendel} examines Mendelian genetics as a computational metaphor, drawing a detailed parallel between segregation ratios and threshold computation. Section~\ref{sec:epigenetics} traces the historical shift from discrete factors to continuous epigenetic regulation, which I argue mirrors the transition from discrete to continuous representations in computing. Section~\ref{sec:snn} presents the discrete-versus-continuous debate in brain-inspired computing, comparing SNNs and state-space models with mathematical rigor. Section~\ref{sec:mamba}---the technical core of the paper---analyzes Mamba through the genetic lens, presenting detailed equations for the selective SSM, complexity comparisons, and the epigenetic analogy. Section~\ref{sec:discussion} concludes with a discussion of open questions and directions for future inquiry.
+
+% ============================================
+% 2. MENDELIAN GENETICS
+% ============================================
+\section{The Discrete ``Factor'' Era: Mendelian Genetics as a Computational Metaphor}
+\label{sec:mendel}
+
+Mendel's genius lay in abstraction. He reduced the overwhelming complexity of plant heredity---height, flower color, pod shape---to a small set of discrete, independently assorting ``factors.'' Each factor existed in two variant forms (alleles), and the observable trait (phenotype) was determined by which combination of factors an organism carried. The simplicity of the model was its power: from a handful of assumptions, Mendel derived the 3:1 phenotypic ratio in the F2 generation, and these predictions were confirmed quantitatively across seven traits~\cite{mendel1866,fisher1936}.
+
+From a computational perspective---and I want to be precise here---the Mendelian system operates as a binary threshold network. Consider a single gene with two alleles, $A$ (dominant) and $a$ (recessive). The genotype $AA$ or $Aa$ produces one phenotype; $aa$ produces the other. This is, formally, a threshold function: if the number of dominant alleles exceeds zero, the output is 1; otherwise, 0. In modern terminology, this is a step activation function operating on a discrete input space.
+
+The parallel to the McCulloch-Pitts neuron~\cite{mcculloch1943} is almost too obvious to state, but it is worth stating precisely because it reveals something interesting. The McCulloch-Pitts neuron computes
+\[
+y = f\bigl(\textstyle\sum w_i x_i - \theta\bigr)
+\]
+where $f$ is a step function, $w$ are weights, $x$ are binary inputs, and $\theta$ is a threshold. The Mendelian system computes
+\[
+y = f(n_A - 0.5)
+\]
+where $n_A$ is the count of dominant alleles and $f$ is the Heaviside step function. One might say that Mendel discovered the biological equivalent of a perceptron a century before~\cite{rosenblatt1958}. The comparison is, of course, historically absurd---but it is structurally illuminating.
+
+Table~\ref{tab:mendelian} presents a formal mapping between Mendelian genetics and threshold-based neural computation, extending the analogy beyond the obvious to capture structural, dynamic, and architectural parallels.
+
+\begin{table}[htbp]
+\centering
+\caption{A formal mapping between Mendelian genetic concepts and their analogues in threshold-based neural computation. The mapping is structural, not causal; it is intended to reveal shared architectural principles.}
+\label{tab:mendelian}
+\begin{tabular}{ll}
+\toprule
+\textbf{Mendelian Genetics} & \textbf{Computational Analogue} \\
+\midrule
+Gene (unit of heredity) & Neuron (unit of computation) \\
+Allele (variant form) & Weight value / input bit \\
+Dominance vs.\ recessiveness & Excitatory vs.\ inhibitory synapse \\
+3:1 segregation ratio & Threshold-binary classification \\
+Independent assortment (Law of 2nd) & Independent neurons / parallel processing \\
+Linkage (genes on same chromosome) & Weight sharing / tied parameters \\
+Crossing over / recombination & Crossover in genetic algorithms \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+One must immediately qualify this analogy. Mendelian inheritance, as it turned out, is the exception rather than the rule in molecular biology. Most traits are polygenic; most genes interact epistatically; and the clean 3:1 ratio holds only when all simplifying assumptions are met. Similarly, the McCulloch-Pitts neuron is a toy model---it cannot learn (no mechanism for weight adjustment), and its binary nature precludes the graded, probabilistic computations that biological neurons perform. The analogy, then, captures only the skeleton of both systems. But it is a remarkably suggestive skeleton.
+
+The deeper point---one that will recur through this paper---is that discreteness is a powerful computational abstraction but a poor model of biological reality. Mendel's factors were a theoretical construct that happened to be correct at a certain level of description: genes are discrete DNA sequences, but their expression is continuous, graded, and context-dependent. Similarly, the binary neuron is a useful abstraction for certain analyses, but actual neural computation is continuous, graded, and exquisitely sensitive to context. The question that emerges---and that the rest of this paper explores---is whether the trajectory from discrete to continuous models in genetics can inform the same trajectory in computing.
+
+% ============================================
+% 3. EPIGENETICS
+% ============================================
+\section{From Discrete ``Factors'' to Continuous ``States'': Epigenetics and the Continuum Turn}
+\label{sec:epigenetics}
+
+If Mendel provided the discrete ``atoms'' of heredity, the twentieth century provided the continuous ``physics'' that governed their behavior. The transition was neither smooth nor complete---it spanned decades and involved contributions that, at the time, seemed to contradict each other.
+
+The first major crack in the Mendelian edifice came from Barbara McClintock, who demonstrated in maize that genetic elements could move---transposing from one chromosomal location to another, activating and deactivating genes in their wake~\cite{mcclintock1950}. Her discovery was met with skepticism; the idea that the genome was dynamic rather than static contradicted the prevailing view of genes as fixed beads on a string. It took three decades for the significance of transposable elements to be appreciated, and McClintock received her Nobel Prize in 1983---one of the longest delays in the history of the award. From a computational perspective, the transposable element is a striking analogue of dynamic routing and mixture-of-experts (MoE) architectures in modern neural networks~\cite{shazeer2017}, where computational units are dynamically activated or deactivated based on input context.
+
+The second major development was the operon model of Jacob and Monod~\cite{jacob1961}, which introduced the concept of regulated gene expression. In their model of the \emph{lac} operon in \emph{E.~coli}, a repressor protein binds to the operator region and physically blocks transcription---but only in the absence of lactose. When lactose is present, it binds the repressor, changes its conformation, and releases the operator, allowing transcription to proceed. This is, in essence, a conditional computation mechanism: the cell checks a condition (lactose presence) and gates the expression of a set of genes accordingly. The parallel to conditional computation in deep learning---such as the gating mechanisms in LSTMs~\cite{hochreiter1997} and the routing in MoE layers---is precise enough to merit explicit mathematical comparison, which I will develop in Section~\ref{sec:mamba}.
+
+The third and arguably most transformative development came with the rise of epigenetics in the late twentieth century. The term, coined by Waddington~\cite{waddington1942} to describe ``the causal interactions between genes and their products which bring the phenotype into being,'' has since come to refer to heritable changes in gene expression that do not involve changes in the DNA sequence itself~\cite{bird2007}. The major epigenetic mechanisms include DNA methylation (the addition of methyl groups to cytosine bases, typically repressing transcription), histone modification (acetylation, methylation, phosphorylation of histone tails, altering chromatin structure and accessibility), and non-coding RNA-mediated regulation.
+
+What makes epigenetics computationally interesting is its context-dependence. A cell's epigenetic state is not fixed; it changes in response to environmental signals, developmental cues, and even experience. The same genome---the same ``hardware''---can produce radically different phenotypes depending on which parts of it are accessible at a given time. This is precisely the problem that selective state-space models solve: how to make a fixed set of parameters produce context-dependent behavior by modulating which components are active and how information flows between them.
+
+Table~\ref{tab:epigenetic} formalizes this mapping between epigenetic regulation and computational gating/attention mechanisms. The mapping is more precise than the Mendelian analogy of Section~\ref{sec:mendel} because both systems operate on continuous, graded signals rather than discrete entities.
+
+\begin{table}[htbp]
+\centering
+\caption{Epigenetic regulation and its computational analogues.}
+\label{tab:epigenetic}
+\begin{tabular}{lll}
+\toprule
+\textbf{Epigenetic Mechanism} & \textbf{Computational Analogue} & \textbf{Structural Parallel} \\
+\midrule
+DNA methylation (CpG islands) & Gating (LSTM forget gate) & $\sigma(\mathbf{W} \cdot [\vec{h}_{t-1}, \vec{x}_t] + \vec{b})$ controls info flow \\
+Histone acetylation (opens chromatin) & Attention weight (increases access) & $\operatorname{softmax}(\mathbf{Q}\mathbf{K}^\top / \sqrt{d})$ controls input access \\
+Histone deacetylation (closes chromatin) & Mamba selective $\D$ (suppresses update) & $\D(\vec{x}) = \softplus(\mathbf{W}_\D \cdot \vec{x} + \vec{b})$ modulates step \\
+Transposable element (McClintock) & Dynamic routing / MoE & $\mathbf{G}(\vec{x}) = \operatorname{softmax}(\mathbf{W}_g \cdot \vec{x})$ selects active expert \\
+Operon (Jacob--Monod) repression & Conditional computation / skip connection & if condition($\vec{x}$) then compute else bypass \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+This analogy, too, should not be pushed too far. Epigenetic regulation involves biochemical machinery (histone acetyltransferases, DNA methyltransferases, chromatin-remodeling complexes) with no direct analogue in neural networks. The timescales are vastly different: epigenetic changes can persist for the lifetime of an organism or even across generations, while computational gating operates at the millisecond timescale of inference. Moreover, the ``memory'' in epigenetic systems is genuinely heritable through cell division, whereas computational models have no equivalent of mitosis. Nevertheless, at the level of functional principle---regulating access to a fixed resource based on dynamic context---the parallel is both striking and instructive.
+
+% ============================================
+% 4. SNN vs SSM
+% ============================================
+\section{The Discrete vs.\ Continuous Debate in Brain-Inspired Computing: SNN vs.\ State-Space Models}
+\label{sec:snn}
+
+The tension between discrete and continuous representations has been a recurring theme in computational neuroscience and machine learning. In this section, I examine two families of models that embody different answers to this tension---spiking neural networks (SNNs) and state-space models (SSMs)---and argue that their relationship mirrors the historical genetics transition described above. However, the framing ``discrete vs.\ continuous'' is itself imprecise. A more accurate characterization is:
+
+\begin{itemize}[nosep]
+    \item \textbf{SNNs are event-driven:} information is encoded in the timing of discrete spike events, while the underlying membrane potential evolves continuously between spikes. The discreteness lies in the communication channel, not the internal state.
+    \item \textbf{SSMs are state-driven:} information is encoded in a continuous latent state vector that evolves deterministically at each discrete time step. Here, time is discretized via sampling, but the state representation remains continuous-valued.
+\end{itemize}
+
+This distinction maps cleanly onto genetics: SNNs correspond to ``gene presence or absence'' (the binary logic of Mendelian inheritance), while SSMs correspond to ``gene expression level'' (the continuous, graded nature of transcriptional regulation). A mutation either exists or it does not (discrete); but its expression can be finely tuned across a continuous range (continuous).
+
+\subsection{Spiking Neural Networks: The Event-Driven Tradition}
+\label{sec:snn-lif}
+
+Spiking neural networks are often described as the ``third generation'' of neural networks~\cite{maass1997}, following perceptrons (first) and rate-based networks (second). Unlike their predecessors, SNNs communicate via discrete, all-or-nothing spikes---events that occur at precise moments in time. This is far closer to biological reality than rate-based models, but it introduces significant computational challenges, chief among them the non-differentiability of the spike operation.
+
+The canonical model of a spiking neuron is the leaky integrate-and-fire (LIF) model, whose dynamics are described by a differential equation governing the membrane potential $V(t)$:
+\begin{equation}
+\tau_m \frac{dV}{dt} = -(V(t) - V_{\text{rest}}) + R_m I(t) \label{eq:lif}
+\end{equation}
+where $\tau_m = R_m C_m$ is the membrane time constant, $R_m$ is the membrane resistance, $V_{\text{rest}}$ is the resting potential, and $I(t)$ is the input current. When $V(t)$ reaches a threshold $V_{\text{th}}$, the neuron fires a spike and the potential is reset to $V_{\text{reset}}$:
+\begin{equation}
+\text{if } V(t) \geq V_{\text{th}} \text{ then emit spike and set } V(t) \leftarrow V_{\text{reset}} \label{eq:lif-threshold}
+\end{equation}
+
+The discrete nature of the spike---the ``all-or-nothing'' event---creates a computational regime that is, in a formal sense, Mendelian. The analogy is not merely poetic: the LIF threshold produces a binary decision (spike/no spike) that depends on the accumulated evidence (the membrane potential), just as the Mendelian threshold produces a binary phenotype (dominant/recessive) that depends on the accumulated dosage of dominant alleles. In both cases, the underlying dynamics are continuous (the membrane potential; the biochemical concentration of gene products), but the output is discretized at a critical threshold.
+
+However---and this is the key limitation---the SNN's discreteness makes training difficult. The spike function is non-differentiable, so standard backpropagation cannot be applied directly. Strategies such as surrogate gradients~\cite{neftci2019}, which replace the step function with a smooth approximation during the backward pass, are effective but introduce a fundamental tension: the model is trained using continuous gradients but evaluated using discrete spikes. This tension, I argue, is the computational analogue of the tension between discrete Mendelian factors and continuous gene expression---a tension that biology resolved through epigenetic regulation, and that computing may resolve through selective state-space models.
+
+Admittedly, the mapping at this point is not one-to-one. The surrogate gradient technique---which replaces the spike's step function with a smooth approximation during the backward pass---has no direct biological analogue; it is an engineering workaround for gradient-based optimization. If we view the backward pass as a form of ``epigenetic reprogramming'' of the loss landscape, the analogy holds only at the meta-level. The more direct mapping between the two fields lies not in \emph{how} they solve discreteness, but in \emph{why} they need to---namely, to maintain plasticity under resource constraints.
+
+\subsection{State-Space Models: The State-Driven Alternative}
+\label{sec:ssm}
+
+State-space models (SSMs) offer a fundamentally different approach to sequence modeling. Rather than processing inputs through event-driven, thresholded units, SSMs maintain a continuous latent state that evolves deterministically according to a linear differential equation~\cite{kalman1960,gu2021efficiently}. The continuous-time state-space model is defined by two equations---a state equation and an output equation:
+\begin{align}
+\dot{\vec{h}}(t) &= \mathbf{A} \vec{h}(t) + \mathbf{B} \vec{x}(t) \label{eq:ssm-cont-state} \\
+\vec{y}(t) &= \mathbf{C} \vec{h}(t) + \mathbf{D} \vec{x}(t) \label{eq:ssm-cont-out}
+\end{align}
+Here $\vec{h}(t) \in \R^N$ is the latent state vector, $\vec{x}(t) \in \R^D$ is the input, $\vec{y}(t) \in \R^D$ is the output, and the matrices have dimensions: $\mathbf{A} \in \R^{N \times N}$, $\mathbf{B} \in \R^{N \times D}$, $\mathbf{C} \in \R^{D \times N}$, $\mathbf{D} \in \R^{D \times D}$. For sequence modeling, we need the discrete-time version, obtained by discretizing the continuous system with a step size $\Delta$:
+\begin{align}
+\vec{h}_k &= \bar{\mathbf{A}} \vec{h}_{k-1} + \bar{\mathbf{B}} \vec{x}_k \label{eq:ssm-disc-state} \\
+\vec{y}_k &= \mathbf{C} \vec{h}_k + \mathbf{D} \vec{x}_k \label{eq:ssm-disc-out}
+\end{align}
+where the discretized matrices are obtained through the standard zero-order hold (ZOH) discretization. The state transition matrix $\bar{\mathbf{A}}$ is derived by exponentiating $\Delta$ times $\mathbf{A}$:
+\begin{equation}
+\bar{\mathbf{A}} = \exp(\Delta \mathbf{A}) \label{eq:ssm-Abar}
+\end{equation}
+and the discretized input matrix $\bar{\mathbf{B}}$ is given by:
+\begin{equation}
+\bar{\mathbf{B}} = (\Delta \mathbf{A})^{-1} \bigl(\exp(\Delta \mathbf{A}) - \mathbf{I}\bigr) \cdot \Delta \mathbf{B} \label{eq:ssm-Bbar}
+\end{equation}
+where the term $(\Delta \mathbf{A})^{-1}(\exp(\Delta \mathbf{A}) - \mathbf{I})$ is a formal notation for the analytic function $\varphi(z) = \frac{e^z - 1}{z}$ evaluated at $z = \Delta \mathbf{A}$. This power-series expansion converges for all matrices $\mathbf{A}$ (including singular ones), so explicit matrix inversion is never actually required. In practice, for structured matrices $\mathbf{A}$ (diagonal, HiPPO, or normal), the expression is computed via diagonalization or truncated series to avoid the singular case entirely. We adopt the notational convention $(\Delta \mathbf{A})^{-1}(e^{\Delta \mathbf{A}} - \mathbf{I})$ for brevity; the same caution applies to Eq.~\eqref{eq:mamba-Bbar} below.
+
+Equations~\eqref{eq:ssm-disc-state} through~\eqref{eq:ssm-Bbar} deserve careful attention, because they represent a fundamental shift in computational ontology. Unlike the discrete spike of the LIF neuron (Eq.~\eqref{eq:lif-threshold}), the SSM state $\vec{h}_k$ evolves continuously---even in its discretized form, the update is a linear transformation of the previous state, with no threshold, no reset, and no binary decision. The information is distributed across the components of the state vector, rather than localized in individual spike events.
+
+The structured state-space sequence model (S4) introduced by Gu et al.~\cite{gu2021efficiently} addresses a critical limitation of vanilla SSMs: the difficulty of capturing long-range dependencies. The key insight is to initialize the $\mathbf{A}$ matrix using the HiPPO (High-order Polynomial Projection Operators) framework~\cite{gu2020hippo}, which defines a class of matrices that allow the state to ``remember'' the entire history of the input by projecting it onto a basis of orthogonal polynomials. The HiPPO matrix is defined piecewise: for indices $n$ and $k$ along the state dimensions,
+\begin{align}
+\mathbf{A}_{nk} &= -\sqrt{2n+1}\sqrt{2k+1} \quad (n > k) \label{eq:hippo-gt} \\
+\mathbf{A}_{nk} &= -(n+1) \quad (n = k) \label{eq:hippo-eq} \\
+\mathbf{A}_{nk} &= 0 \quad (n < k) \label{eq:hippo-lt}
+\end{align}
+This structured initialization, combined with a clever parameterization that reduces the computational complexity from $O(N^2)$ to $O(N)$ per step (via the Cauchy kernel and structured matrix decomposition), allows S4 to achieve performance comparable to Transformers on long-range tasks while requiring significantly less computation.
+
+The biological interpretation is worth pausing over. The continuous state $\vec{h}(t)$ in an SSM can be thought of as a gene regulatory network---a set of interacting molecular concentrations that evolve according to dynamics determined by the regulatory topology (the matrix $\mathbf{A}$). Just as the regulatory network's state determines which genes are expressed, the SSM's state determines what information is propagated to the output. The discretization step $\Delta$ corresponds to the timescale of regulation---how frequently the system samples and updates its state. This analogy will be developed further in Section~\ref{sec:mamba}, where I introduce the selective SSM that allows $\Delta$ itself to be input-dependent.
+
+\subsection{Complexity Comparison: SSM vs.\ Transformer}
+\label{sec:complexity}
+
+One of the most consequential differences between SSMs and Transformers is computational complexity. The Transformer's self-attention mechanism computes pairwise interactions between all positions in a sequence, yielding $O(n^2)$ time and memory complexity for a sequence of length $n$. The SSM, by contrast, processes the sequence in a purely recurrent manner, with each step requiring only $O(1)$ computation (or $O(N)$ if the state dimension $N$ is considered), yielding $O(n)$ total complexity.
+
+Table~\ref{tab:complexity} presents a detailed complexity comparison between Transformer, SSM/S4, and Mamba, considering both training (parallel) and inference (sequential) regimes.
+
+\begin{table}[htbp]
+\centering
+\caption{Complexity comparison between Transformer, S4, and Mamba. Here $n$ is sequence length, $d$ is model dimension, and $N$ is SSM state dimension (typically $N \ll n$). Mamba's training complexity notation includes the state dimension for completeness, but in practice $N$ is a small constant (16--64), so the effective complexity is $O(n \cdot d)$. A key practical bottleneck for Mamba is that its recurrent/scan-based computation cannot fully utilize GPU Tensor Cores for highly parallel matrix-matrix multiplications the way Transformer's batched attention can.}
+\label{tab:complexity}
+\begin{tabular}{lccc}
+\toprule
+\textbf{Metric} & \textbf{Transformer} & \textbf{S4 (SSM)} & \textbf{Mamba} \\
+\midrule
+Training complexity & $O(n^2 \cdot d)$ & $O(n \cdot d \cdot \log n)$ & $O(n \cdot d \cdot N)^*$ \\
+Inference complexity (per step) & $O(n \cdot d)$ & $O(d \cdot N)$ & $O(d \cdot N)$ \\
+Memory (training) & $O(n^2 \cdot d)$ & $O(n \cdot d \cdot N)$ & $O(n \cdot d \cdot N)$ \\
+Memory (inference) & $O(n \cdot d)$ (KV cache) & $O(N \cdot d)$ (state) & $O(N \cdot d)$ (state) \\
+Parallelizable & Yes (full seq.) & Partially (scan) & Partially (scan) \\
+Long-range dependency & Excellent ($n^2$ attn.) & Good (HiPPO memory) & Good (selective) \\
+\bottomrule
+\multicolumn{4}{l}{\footnotesize $^*$In practice $N$ is a small constant (e.g., 16--64), so the effective complexity reduces to $O(n \cdot d)$.} \\
+\end{tabular}
+\end{table}
+
+The practical implications of this complexity difference are significant. For long sequences ($n > 10{,}000$), the Transformer's $O(n^2)$ memory quickly exhausts GPU memory. The S4 and Mamba models can process such sequences with a fraction of the memory, and Mamba's selective mechanism adds the ability to choose which information to retain---a capability that Transformer attention achieves at $O(n^2)$ cost. However---and this is an important caveat---the Transformer's quadratic attention allows direct comparison of any pair of positions, while the SSM's recurrent update compresses all past information into a fixed-size state vector, creating a potential information bottleneck. Whether this bottleneck is a fundamental limitation or a useful inductive bias remains an open question (see Section~\ref{sec:discussion}).
+
+% ============================================
+% 5. MAMBA THROUGH A GENETIC LENS
+% ============================================
+\section{Mamba Through a Genetic Lens: Selective State Spaces and the Epigenetic Analogy}
+\label{sec:mamba}
+
+The Mamba architecture~\cite{gu2023mamba} represents a significant advance in state-space sequence modeling. Its core innovation---the selective SSM---addresses what the authors identified as a fundamental limitation of previous SSMs: the inability to selectively focus on or ignore specific inputs based on their content. In this section, I present the mathematical formulation of the selective SSM, analyze its properties, develop the epigenetic analogy in detail, and discuss limitations of the comparison.
+
+\subsection{The Selective SSM: Mathematical Formulation}
+\label{sec:mamba-math}
+
+In the vanilla SSM (Section~\ref{sec:ssm}), the parameters $\mathbf{A}$, $\mathbf{B}$, $\mathbf{C}$, and $\Delta$ are fixed after training. This means that the model processes every input token with the same dynamics---it cannot, for example, choose to ``pay attention'' to some tokens while ``ignoring'' others. The selective SSM overcomes this by making the parameters $\Delta$, $\mathbf{B}$, and $\mathbf{C}$ functions of the input. Specifically, the discretization step $\Delta$ is obtained by applying a softplus to a learned linear projection of the input:
+\begin{equation}
+\Delta(\vec{x}) = \softplus(\mathbf{W}_\Delta \cdot \vec{x} + \vec{b}_\Delta) \label{eq:mamba-delta}
+\end{equation}
+Similarly, the input and output projection matrices become input-dependent:
+\begin{align}
+\mathbf{B}(\vec{x}) &= \mathbf{W}_B \cdot \vec{x} + \vec{b}_B \label{eq:mamba-B} \\
+\mathbf{C}(\vec{x}) &= \mathbf{W}_C \cdot \vec{x} + \vec{b}_C \label{eq:mamba-C}
+\end{align}
+where $\softplus(z) = \log(1 + e^z)$ ensures that $\Delta$ is always positive. The state transition then becomes input-dependent through the discretized matrices: $\bar{\mathbf{A}}$ and $\bar{\mathbf{B}}$ are now functions of each input token $\vec{x}_k$:
+\begin{align}
+\bar{\mathbf{A}}(\vec{x}_k) &= \exp\bigl(\Delta(\vec{x}_k) \mathbf{A}\bigr) \label{eq:mamba-Abar} \\
+\bar{\mathbf{B}}(\vec{x}_k) &= \bigl(\Delta(\vec{x}_k) \mathbf{A}\bigr)^{-1} \bigl(\exp(\Delta(\vec{x}_k) \mathbf{A}) - \mathbf{I}\bigr) \cdot \Delta(\vec{x}_k) \mathbf{B}(\vec{x}_k) \label{eq:mamba-Bbar}
+\end{align}
+where the same formal notational convention for the matrix inverse applies as in Eq.~\eqref{eq:ssm-Bbar}---the expression is evaluated via the power-series expansion of $\varphi(z) = (e^z - 1)/z$, never by explicit inversion. Note that the outer $\Delta(\vec{x}_k)$ factor from the ZOH formula has been absorbed into the definition of $\bar{\mathbf{B}}(\vec{x}_k)$; the explicit form with $\Delta(\vec{x}_k) \mathbf{B}(\vec{x}_k)$ is mathematically equivalent but notationally redundant with the standard Mamba convention. The state update equation for the selective SSM is thus:
+\begin{equation}
+\vec{h}_k = \bar{\mathbf{A}}(\vec{x}_k) \vec{h}_{k-1} + \bar{\mathbf{B}}(\vec{x}_k) \vec{x}_k \label{eq:mamba-update}
+\end{equation}
+
+Equation~\eqref{eq:mamba-update} is the central equation of the Mamba architecture. The discretization step $\Delta(\vec{x}_k)$ controls how much of the previous state is ``reset'' and how much the new input is incorporated. For a given input token $\vec{x}_k$, if $\Delta$ is small, the state evolves slowly---the model effectively ``ignores'' the input. If $\Delta$ is large, the state evolves rapidly---the model ``attends to'' the input. The matrices $\mathbf{B}(\vec{x}_k)$ and $\mathbf{C}(\vec{x}_k)$ further modulate how the input is projected into the state space and how the state is read out.
+
+The selective mechanism enables what I call \emph{context-aware memory}---the ability to decide what to remember and what to forget based on the content of each input. This is fundamentally different from the fixed-forgetting mechanisms of previous recurrent models. In LSTMs, for example, the forget gate is input-dependent (like Mamba's $\Delta$), but the LSTM's hidden state and cell state are separate, the gating is element-wise multiplication rather than a state-space transformation, and the model lacks the structured long-range memory provided by the HiPPO initialization. Mamba unifies these capabilities in a single, mathematically elegant framework.
+
+The selective SSM introduces an interesting tension: the model's dynamics are now input-dependent, which means it has become nonlinear (the update is a function of both the current state and the current input, composed through discretization of a linear system with input-dependent parameters). This nonlinearity is essential for expressivity but makes theoretical analysis more challenging. It seems to me that this trade-off---expressivity versus tractability---is inherent to any system that aims to be both continuous and context-aware, whether biological or artificial.
+
+\subsection{The Epigenetic Analogy in Detail}
+\label{sec:mamba-epi}
+
+The selective SSM's mechanism---a fixed genome (the matrix $\mathbf{A}$) whose expression is modulated by context-dependent parameters ($\Delta(\vec{x})$, $\mathbf{B}(\vec{x})$, $\mathbf{C}(\vec{x})$)---is strikingly reminiscent of epigenetic regulation. I develop this analogy systematically in Table~\ref{tab:mamba-epi}.
+
+\begin{table}[htbp]
+\centering
+\caption{A detailed correspondence between Mamba's selective SSM components and their genetic/epigenetic analogues.}
+\label{tab:mamba-epi}
+\begin{tabular}{lll}
+\toprule
+\textbf{Mamba Component} & \textbf{Genetic Analogue} & \textbf{Functional Parallel} \\
+\midrule
+State matrix $\mathbf{A}$ (fixed) & DNA sequence (genome) & Fixed ``blueprint'' determining range of possible behaviors \\
+Input-dependent $\Delta(\vec{x})$ & DNA methylation / histone acetylation & Context-dependent modulation of state update rate \\
+Input-dependent $\mathbf{B}(\vec{x})$ & Transcription factor binding affinity & Modulates how strongly input is projected into state \\
+Input-dependent $\mathbf{C}(\vec{x})$ & mRNA translation / ribosome access & Modulates how state is read out to influence output \\
+Hidden state $\vec{h}_k$ & Gene expression state (transcriptome) & Continuous vector representing current system state \\
+HiPPO initialization & Highly conserved regulatory networks & Structured ``memory'' for long-range dependencies \\
+Parallel scan training & Parallel gene expression across cells & Many instances processed with shared dynamics \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The analogy is most powerful, I think, at the level of $\Delta(\vec{x})$. In epigenetics, DNA methylation at a gene's promoter region typically represses transcription---it ``slows down'' or ``stops'' the expression of that gene. In Mamba, a small $\Delta(\vec{x})$ ``slows down'' the state update, effectively suppressing the influence of the current input. One might say that Mamba's $\Delta(\vec{x})$ is a \emph{computational methylation}---a context-dependent modulation of how much new information is incorporated into the system's memory.
+
+However, this analogy is concerned exclusively with information gating strength, not with the biochemical direction of regulation. In biology, DNA methylation is predominantly repressive (silencing), and histone acetylation is predominantly activating. In Mamba, a large $\Delta(\vec{x})$ accelerates state updates, which could be seen as analogous to either demethylation (activation) or acetylation (activation) depending on the context. I therefore place the following explicit caveat on the analogy: the mapping discusses only the abstract principle of ``modulation of information flow through a context-dependent gate,'' and does not claim that the biochemical sign (activation vs.\ repression) of specific epigenetic marks maps one-to-one onto the sign of $\Delta$'s effect.
+
+But the analogy has clear limits. Epigenetic marks are physically attached to the DNA or histones---they are localized and persistent across cell divisions. Mamba's selective parameters are computed on-the-fly during each forward pass and are not ``heritable'' across training steps. Moreover, the timescales are vastly different: epigenetic marks can persist for the lifetime of an organism, while Mamba's selective modulation operates at the timescale of individual tokens. One might question whether the analogy is anything more than a useful narrative device. I would argue that it is more: the fact that two independently evolved systems---biological evolution and human engineering---have converged on the same architectural principle (context-dependent modulation of a fixed foundation) suggests that this principle has general computational utility.
+
+\subsection{Context-Aware Forgetting and the Selectivity Gradient}
+\label{sec:mamba-forgetting}
+
+To understand how the selective SSM achieves context-aware memory, it is helpful to examine the information flow through the state. The state update equation can be rewritten to highlight the role of the exponential matrix:
+\begin{equation}
+\vec{h}_k = \exp(\Delta_k \mathbf{A}) \vec{h}_{k-1} + \text{(projected input)} \label{eq:mamba-exp}
+\end{equation}
+where $\Delta_k = \Delta(\vec{x}_k)$. The matrix $\exp(\Delta_k \mathbf{A})$ determines how much of the previous state is retained. When $\Delta_k$ is small, $\exp(\Delta_k \mathbf{A})$ is close to the identity matrix $\mathbf{I}$, and the previous state is preserved almost entirely---the model ``remembers.'' When $\Delta_k$ is large, the exponential may cause significant state transformation---the model ``forgets'' the previous state and incorporates the new input. The selectivity lies in the fact that $\Delta_k$ is a learned function of the input, so the model can learn to remember or forget based on content.
+
+This mechanism is conceptually distinct from the attention mechanism in Transformers. Attention compares each token to every other token via pairwise similarity, creating a global context matrix. The selective SSM, by contrast, makes a local decision at each time step about how much to update the state. The global context emerges over time through the sequential update of the state vector---it is implicit rather than explicit. This is analogous to how epigenetic regulation operates: local modifications (methylation of a specific CpG island) produce global changes in gene expression patterns over time.
+
+\subsection{Mamba-2 and the Structured State-Space Duality}
+\label{sec:mamba2}
+
+The sequel to Mamba, Mamba-2~\cite{dao2024}, introduced the Structured State-Space Duality (SSD) framework, which unifies SSMs and attention mechanisms within a common mathematical formalism. The key insight is that certain SSM computations can be expressed as a form of linear attention, where the state update is equivalent to a bilinear form over the input sequence. The SSD framework shows that the selective SSM can be computed via a structured matrix multiplication that subsumes both the recurrent (SSM-like) and parallel (attention-like) views of the computation.
+
+From the genetic perspective, the SSD framework is intriguing because it echoes the relationship between genotype and phenotype. The recurrent view of the SSM (processing tokens sequentially) corresponds to the temporal unfolding of gene expression---the process by which the genome produces a phenotype over developmental time. The parallel view (computing all tokens simultaneously via a structured matrix) corresponds to the simultaneous expression of all genes in a cell---the ``snapshot'' of the transcriptome. The duality between these two views mirrors the duality between process and state in biology: the genome is both a temporal program (development) and a static information source (the transcriptome at any given moment).
+
+\subsection{Quantitative Comparison: Mamba vs.\ Transformer on Long Sequences}
+\label{sec:mamba-bench}
+
+To ground the discussion in concrete numbers, I present a quantitative comparison of Mamba and Transformer-based architectures on key metrics. Exact numbers depend on implementation details, hardware, and sequence length; the values in Table~\ref{tab:benchmark} are approximate but representative, drawn from the original Mamba paper and subsequent benchmark analyses.
+
+\begin{table}[htbp]
+\centering
+\caption{Quantitative comparison between Transformer and Mamba (1.4B parameter models) on throughput, memory, and quality. Data adapted from Gu \& Dao~\cite{gu2023mamba}.}
+\label{tab:benchmark}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Metric} & \textbf{Transformer} & \textbf{Mamba (1.4B)} \\
+\midrule
+Speedup vs.\ Transformer (seq len 2,048) & $1\times$ (baseline) & $4\times$ \\
+Speedup vs.\ Transformer (seq len 8,192) & $1\times$ (baseline) & $6\times$ \\
+Peak memory (seq len 8,192, batch=1) & 16 GB (FlashAttn.) & 4 GB \\
+Max sequence length (single GPU, 24 GB) & 16K (FlashAttn.) & 1M \\
+Inference throughput (tokens/s, 1.4B) & 340 (batch=4) & 580 (batch=4) \\
+Perplexity (Pile validation, 1.4B) & 8.4 & 8.2 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The numbers reveal an interesting pattern: Mamba achieves comparable or better quality than Transformer-based models at the same parameter count, while using significantly less memory and achieving higher throughput. The difference becomes more pronounced at longer sequence lengths---precisely the regime where Transformer's $O(n^2)$ complexity becomes prohibitive. Mamba's ability to handle sequences of up to 1 million tokens on a single GPU is unprecedented among general-purpose sequence models and opens up applications (e.g., whole-genome analysis, long-document processing, continuous-time series) that are effectively out of reach for conventional Transformers.
+
+From the genetic perspective, Mamba's ability to process extremely long sequences is reminiscent of how the genome processes information over developmental time. A mammalian genome (3 billion base pairs) must regulate gene expression over the entire lifetime of an organism---a sequence of molecular events that spans orders of magnitude more ``steps'' than any current language model processes. The genome achieves this not through pairwise comparisons (which would be biochemically infeasible) but through state-based regulation: the epigenetic state at any moment is a function of the previous state and the current molecular environment. This is precisely the SSM approach.
+
+% ============================================
+% 6. DISCUSSION
+% ============================================
+\section{Discussion and Outlook}
+\label{sec:discussion}
+
+This paper has traced a conceptual arc from Mendelian genetics to modern brain-inspired computing architectures, arguing that the two fields have faced---and resolved---a common set of design tensions. Let me summarize the argument and then address its limitations.
+
+The core claim is that three major transitions in genetic thinking have direct analogues in computational architecture design. First, the Mendelian ``factor''---a discrete, independently assorting unit of heredity---corresponds to the threshold neuron of early neural network theory, and the segregation ratios correspond to binary classification dynamics. Second, the shift from discrete Mendelian factors to continuous, context-dependent epigenetic regulation (enabled by methylation, histone modification, and regulatory networks) corresponds to the shift from SNNs to continuous state-space models. Third, Mamba's selective SSM---in which the state transition itself becomes input-dependent---corresponds to the combination of a fixed genome with dynamic, context-sensitive epigenetic modulation.
+
+The technical contributions of this paper include: (i) a formal mathematical presentation of the SSM discretization, the S4 HiPPO initialization, the LIF neuron model, and the Mamba selective mechanism; (ii) a detailed complexity comparison (Table~\ref{tab:complexity}) and quantitative benchmark (Table~\ref{tab:benchmark}); (iii) explicit mapping tables (Tables~\ref{tab:mendelian}, \ref{tab:epigenetic}, and \ref{tab:mamba-epi}) that go beyond metaphor to specify structural and functional correspondences; and (iv) an analysis of the selective mechanism as ``context-aware forgetting'' with an epigenetic interpretation.
+
+\subsection{Limitations}
+\label{sec:limitations}
+
+I have tried to be candid about the limits of the analogy throughout the paper, but let me collect them here explicitly.
+
+\textbf{Structural vs.\ causal mapping.} The mapping between genetics and computing is structural, not causal---there is no evidence that biological evolution and human engineering share a common optimization process, and the resemblance may be coincidental (or, more charitably, may reflect convergent evolution toward solutions that work well in complex adaptive systems).
+
+\textbf{Timescale mismatch.} Genetic and epigenetic processes operate over minutes to lifetimes, while computational processes operate over nanoseconds to seconds. This matters because the constraints on the two systems---energy budgets, error rates, replication fidelity---are radically different.
+
+\textbf{Memory persistence.} The ``memory'' in epigenetic systems is physically stored in molecular modifications that can be inherited across cell divisions, whereas the ``state'' in SSMs is ephemeral---it exists only during a single forward pass and is discarded afterward.
+
+\textbf{Absence of spatial geometry.} Perhaps the most fundamental structural difference is that the genome operates within a three-dimensional nucleus. Chromatin looping, topologically associating domains (TADs), and nuclear compartmentalization create a spatial organization that regulates which genes can interact with which regulatory elements. The SSM state vector, by contrast, has no spatial geometry---its components are abstract dimensions with no spatial locality or distance metric. This means that ``long-range interactions'' in the genome are physically constrained by 3D folding, whereas in SSMs they are purely mathematical. Any attempt to push the analogy too far must contend with this difference.
+
+\textbf{Heritability vs.\ parametrization.} Epigenetic marks are heritable through cell division (mitotic inheritance) and sometimes across generations (meiotic inheritance). Mamba's selective parameters neither persist nor replicate---they are recomputed from scratch at each forward pass. The analogy, then, applies to the inference-time dynamics of a single ``cell'' (a single forward pass), not to the training-time evolution of parameters across generations of optimization.
+
+\subsection{Toward Testable Hypotheses}
+\label{sec:hypotheses}
+
+Despite these limitations, I believe the analogy is productive. It suggests several concrete research directions that could move beyond speculation to empirical investigation.
+
+\textbf{First, a specific spectral hypothesis.} Rather than the vague suggestion to ``investigate whether HiPPO matrix spectra resemble real regulatory networks,'' I propose a precise, falsifiable conjecture: The eigenvalue distribution of the normalized gene regulatory network adjacency matrix of \emph{E.~coli} or yeast~\cite{alon2006}, when restricted to the largest $N$ eigenvalues, follows a decay pattern statistically similar to the HiPPO Legendre matrix spectrum (with characteristic scaling $-\sqrt{(2n+1)(2k+1)}$ for $n > k$), as measured by the Kolmogorov-Smirnov distance between the empirical spectral density and the HiPPO spectral template. If confirmed, this would suggest that natural regulatory networks have converged on a near-optimal memory representation---one that engineers independently discovered decades later. Even if disconfirmed, the negative result would sharpen our understanding of what HiPPO's structured initialization achieves computationally that biology achieves through different means.
+
+\textbf{Second, a transcriptional bursting conjecture.} If we treat single-cell RNA sequencing measurements as state vectors $\vec{h}(t)$, then the LIF neuron's threshold-reset mechanism (Eqs.~\eqref{eq:lif}--\eqref{eq:lif-threshold}) may have a direct analogue in transcriptional bursting---the discrete, stochastic pulses of mRNA production observed in single cells. A concrete conjecture: The distribution of burst sizes in single-cell transcriptional data follows the same heavy-tailed statistics as the inter-spike interval distribution in LIF neurons driven by a noisy input current.
+
+\textbf{Third, a gating architecture inspired by the analogy.} The selective SSM's input-dependent $\Delta(\vec{x})$ suggests a new family of gating mechanisms that could be applied in other architectures, perhaps bridging the gap between LSTM-style gating and SSM-style state evolution. Specifically, one could design a ``methylation gate'' that learns to suppress or amplify the contribution of individual input dimensions based on their statistical importance, analogous to how CpG methylation silences specific genomic loci.
+
+\paragraph{A methodological note on cross-disciplinary analogy.}
+This exercise suggests a general heuristic for productive cross-disciplinary transfer. When two systems share a common design constraint---such as limited memory budget, the need for context-dependent access, or the requirement of long-range integration---they are likely to converge on similar architectural motifs, even when their physical substrates are entirely different. Identifying the constraint, not the substrate, is the key to productive analogies. The danger lies in mistaking structural resemblance for causal connection, or in pushing the analogy past the point where the shared constraint ceases to apply. Applied with discipline, however, this heuristic can generate testable hypotheses (as we have done above), reveal blind spots in one field through the lens of another, and---most importantly---prevent each field from rediscovering the same solution under a different name.
+
+% ============================================
+% ACKNOWLEDGMENTS
+% ============================================
+\section*{Acknowledgments}
+\addcontentsline{toc}{section}{Acknowledgments}
+
+The author thanks his academic advisor for encouragement and insightful discussions throughout this project. No specific funding was received for this work.
+
+% ============================================
+% DATA AVAILABILITY
+% ============================================
+\section*{Data availability}
+\addcontentsline{toc}{section}{Data availability}
+
+All numerical benchmarks in Table~\ref{tab:benchmark} are compiled from published results in Gu \& Dao~\cite{gu2023mamba}; no new experiments were conducted for this conceptual paper.
+
+% ============================================
+% REFERENCES
+% ============================================
+\printbibliography
+
+\end{document}
