@@ -13,13 +13,14 @@ from .vision_modules.types import ImageProfile, PipelineSelection
 # ═══════════════════════════════════════════════════════════
 
 PIPELINE_TABLE = [
-    # (size, bg_type, ensemble_trigger, name, steps, use_ensemble)
-    ('S', 'grid',      None,             'S_grid',          ['gaussian', 'clahe', 'otsu', 'houghp', 'diff', 'calibrate'], False),
+    # NOTE: ensemble-triggered entries must come BEFORE base entries of same size+bg
+    # so high-contrast/noisy images hit S_grid_ensemble before falling through to S_grid.
     ('S', 'grid',      'high_contrast',  'S_grid_ensemble', ['gaussian', 'clahe', 'otsu', 'morphological', 'houghp', 'fld', 'fusion', 'calibrate'], True),
+    ('S', 'grid',      None,             'S_grid',          ['gaussian', 'clahe', 'otsu', 'houghp', 'diff', 'calibrate'], False),
     ('S', 'solid',     None,             'S_solid',         ['gaussian', 'otsu', 'contour', 'shape'], False),
     ('S', 'cluttered', None,             'S_cluttered',     ['gaussian', 'clahe', 'felzenszwalb', 'contour', 'shape'], False),
-    ('M', 'grid',      None,             'M_grid',          ['gaussian', 'clahe', 'lsd', 'dbscan', 'calibrate'], False),
     ('M', 'grid',      'high_contrast',  'M_grid_ensemble', ['gaussian', 'clahe', 'lsd', 'fld', 'fusion', 'calibrate'], True),
+    ('M', 'grid',      None,             'M_grid',          ['gaussian', 'clahe', 'lsd', 'dbscan', 'calibrate'], False),
     # fallback catches everything else
     (None, None,       None,             'fallback',        ['gaussian', 'otsu', 'houghp', 'diff', 'calibrate'], False),
 ]

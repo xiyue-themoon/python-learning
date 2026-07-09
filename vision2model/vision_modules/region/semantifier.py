@@ -14,7 +14,7 @@ from ..types import GenericRegion
 # 角色判定阈值
 # ═══════════════════════════════════════════════════════════
 
-DOMINANT_AREA_RATIO = 0.15         # dominant 最少占图 15%
+DOMINANT_AREA_RATIO = 0.10         # dominant 最少占图 10% (分割后碎片化容忍)
 DOMINANT_CENTER_MARGIN = 0.20      # 质心距图像中心偏差容限 (归一化)
 
 BACKGROUND_AREA_RATIO = 0.10       # background 最少占图 10%

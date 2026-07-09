@@ -11,6 +11,7 @@ import cv2
 
 from .dispatcher import dispatcher, select_pipeline
 from .pipelines.S_grid import run_S_grid
+from .pipelines.S_grid_ensemble import run_S_grid_ensemble
 from .output.json_exporter import export_json
 from .output.svg_renderer import render_svg
 from .output.summary_printer import print_summary
@@ -20,6 +21,9 @@ from .vision_modules.registry import MODULE_REGISTRY, list_all_modules
 
 PIPELINE_REGISTRY = {
     'S_grid': run_S_grid,
+    'S_grid_ensemble': run_S_grid_ensemble,
+    'S_solid': run_S_grid,
+    'fallback': run_S_grid,
 }
 
 
