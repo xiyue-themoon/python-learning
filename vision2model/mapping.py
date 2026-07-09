@@ -253,7 +253,7 @@ def map_to_3d(
     return {
         'primitive': primitive,
         'dimensions_px': dim_px,
-        'dimensions_mm': dim_mm if px_per_mm else {},
+        'dimensions_mm': dim_mm,
         'px_per_mm': px_per_mm,
         'freecad_script': script if px_per_mm else 'Calibrate first (provide --grid-mm or --body-height)',
     }
