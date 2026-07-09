@@ -38,7 +38,7 @@ def line_lsd(image, *, min_length: int = 20):
     else:
         gray = image
 
-    lsd = cv2.createLineSegmentDetector(0, _refine=cv2.LSD_REFINE_STD)
+    lsd = cv2.createLineSegmentDetector(refine=cv2.LSD_REFINE_STD)
     lines, widths, _, _ = lsd.detect(gray)
 
     if lines is None:
