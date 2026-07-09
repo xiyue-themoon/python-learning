@@ -17,7 +17,7 @@ def build(tex_rel: str) -> str:
     os.makedirs(out_dir, exist_ok=True)
 
     def run(cmd, **kw):
-        r = subprocess.run(cmd, cwd=proj, capture_output=True, text=True, timeout=180, errors="replace", shell=True, **kw)
+        r = subprocess.run(cmd, cwd=proj, capture_output=True, text=True, timeout=180, errors="replace", **kw)
         errs = [l.strip() for l in r.stdout.split("\n") if l.startswith("! ") and "rerunfilecheck" not in l]
         if errs:
             for e in errs: print(f"  ERR: {e}")

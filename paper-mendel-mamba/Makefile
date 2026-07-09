@@ -6,7 +6,7 @@
 #   make clean    — remove build artifacts
 #   make watch    — auto-rebuild on .tex changes (needs inotifywait)
 
-NAME := paper
+NAME := Ma_Mendel_Mamba_2026
 SRC  := src/$(NAME)
 OUT  := output
 BLD  := build
