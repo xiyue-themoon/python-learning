@@ -156,15 +156,41 @@ def run_S_grid_ensemble(
         measurements.append(entry)
     result['measurements'] = measurements
 
-    # --- Calibration ---
+    # --- Calibration with grid cell estimation ---
     if calib and calib.method == 'grid' and calib.value_mm > 0:
-        # Use Hough lines for grid cell estimation
+        # Compute grid cell size from Hough lines
         hough = ensemble_info.get('line_sets', {}).get('line_houghp', {})
-        result['calibration'] = {
-            'method': 'grid',
-            'grid_mm': calib.value_mm,
-            'n_algorithms': len(ensemble_info.get('line_sets', {})),
-        }
+        h_lines_raw = hough.get('lines', np.empty((0, 4), dtype=np.int32))
+        h_angle = 0.0
+        # Extract positions from Hough lines
+        h_pos = []
+        v_pos = []
+        for i in range(len(h_lines_raw)):
+            l = h_lines_raw[i]
+            if len(l) >= 4:
+                x1, y1, x2, y2 = l[:4]
+                dx, dy = x2 - x1, y2 - y1
+                angle = abs(np.degrees(np.arctan2(abs(dy), max(abs(dx), 1))))
+                mid = ((x1 + x2) / 2, (y1 + y2) / 2)
+                if angle < 30:
+                    h_pos.append(int(round(mid[1])))
+                elif angle > 60:
+                    v_pos.append(int(round(mid[0])))
+        from ..vision_modules.calibrate.grid import calibrate_grid
+        calib_ms = calibrate_grid({'horizontal_positions': h_pos, 'vertical_positions': v_pos},
+                                  known_grid_mm=calib.value_mm)
+        if len(calib_ms.measurements) >= 1:
+            px_per_mm = calib_ms.measurements[0].value
+            result['calibration'] = {
+                'method': 'grid',
+                'px_per_mm': px_per_mm,
+                'grid_mm': calib.value_mm,
+                'n_algorithms': len(ensemble_info.get('line_sets', {})),
+                'grid_ms': {'n_gaps': calib_ms.raw_data.get('n_gaps', 0),
+                            'grid_cv': calib_ms.raw_data.get('grid_cv', 0)},
+            }
+        else:
+            result['calibration'] = {'method': 'grid', 'px_per_mm': 0, 'grid_mm': calib.value_mm}
     else:
         result['calibration'] = {'method': 'none', 'unit': 'px'}
 

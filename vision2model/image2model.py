@@ -12,6 +12,7 @@ import cv2
 from .dispatcher import dispatcher, select_pipeline
 from .pipelines.S_grid import run_S_grid
 from .pipelines.S_grid_ensemble import run_S_grid_ensemble
+from .mapping import map_to_3d
 from .output.json_exporter import export_json
 from .output.svg_renderer import render_svg
 from .output.summary_printer import print_summary
@@ -71,7 +72,30 @@ def main():
 
     result = runner(image, calib=calib)
 
-    # Step 3: Output
+    # Step 3: 3D Mapping
+    if calib and result.get('measurements'):
+        dominant = None
+        for m in result['measurements']:
+            if 'dominant' in m.get('roles', []):
+                dominant = m
+                break
+        px_per_mm = result.get('calibration', {}).get('px_per_mm')
+        if px_per_mm is not None and px_per_mm > 0:
+            mapping_result = map_to_3d(
+                result['measurements'],
+                dominant_region=dominant,
+                px_per_mm=px_per_mm,
+                mapping_mode='auto',
+            )
+            result['3d_mapping'] = mapping_result
+            if mapping_result.get('freecad_script'):
+                script_path = os.path.join(output_dir, f'{base_name}_fcscript.py')
+                with open(script_path, 'w', encoding='utf-8') as f:
+                    f.write(mapping_result['freecad_script'])
+                print(f'FC Script: {script_path}')
+            print(f'3D Primitive: {mapping_result.get("primitive", "?")}')
+
+    # Step 4: Output
     output_dir = args.output_dir or os.path.dirname(args.image_path) or '.'
     os.makedirs(output_dir, exist_ok=True)
     base_name = os.path.splitext(os.path.basename(args.image_path))[0]
